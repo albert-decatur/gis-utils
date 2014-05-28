@@ -6,7 +6,7 @@ usage()
 cat << EOF
 usage: $0 [OPTIONS]
 
-Export CSV as shapefile using OGR's virtual format.
+Export CSV as point shapefile using longitude and latitude columns.
 Output shapefile must not exist.
 If no -s flag is used, name of CSV will be used as name of shapefile.
 Example: $0 -c foo.csv -x longitude -y latitude -s bar.shp
