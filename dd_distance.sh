@@ -12,7 +12,7 @@ db=$2
 
 first=$( echo "$coords" | awk '{print $1,$2}' )
 second=$( echo "$coords" | awk '{print $3,$4}' )
-cat | psql $db<<EOF
+cat | psql $db <<EOF
 	select 
 	st_distance(
 		st_geomfromtext(
