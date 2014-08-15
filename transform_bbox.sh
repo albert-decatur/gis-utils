@@ -5,6 +5,7 @@
 # NB: just calls GDAL/OGR utils and postgis
 # WKT polygons looks like this: POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))
 # user args: 1) input OGR or GDAL layer 2) postgis enabled db, 3) input EPSG code, 4) output EPSG code
+# TODO - same but for rasters
 
 # example use: $0 foo.shp bar_db 4326 900913
 

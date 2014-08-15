@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # merge a directory of shapefiles
-# user args: 1) directory of shp to merge, 2) name of new merge shp
+# user args: 1) full path of directory of shp to merge, 2) name of new merge shp
 
 # NB: output merge shp will be overwrittern!
 
