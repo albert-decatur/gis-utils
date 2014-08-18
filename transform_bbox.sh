@@ -1,13 +1,11 @@
 #!/bin/bash
 
-# script to transform a bounding box (BBOX) from one SRS to another
-# works on raster or vector
-# NB: just calls GDAL/OGR utils and postgis
-# WKT polygons looks like this: POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))
+# script to report GDAL/OGR layer BBOX coordinates in any SRS by EPSG code
+# NB: just calls GDAL/OGR utils and postgis.  must use full path for input layer
+# TODO - report BBOX in current SRS. can do this now by repeating the same EPSG code! messy
 # user args: 1) input OGR or GDAL layer 2) postgis enabled db, 3) input EPSG code, 4) output EPSG code
-# TODO - same but for rasters
 
-# example use: $0 foo.shp bar_db 4326 900913
+# example use: $0 /full/path/to/foo.shp bar_db 4326 900913
 
 inlayer=$1
 db=$2
@@ -29,13 +27,17 @@ function typetest {
 	fi
 }
 
-typetest
-
-
-function get_bbox_asWKT {
+function get_ullr {
 case $type in
 	rast)
-	echo "it's rast"
+	xmin_ymax_xmax_ymin=$(
+		gdalinfo $inlayer |\
+		grep -E "Upper Left|Lower Right" |\
+		awk '{ print $4,$5}' |\
+		grep -oE "[0-9.-]+" |\
+		awk '{ print $1,$4,$3,$2 }' |\
+		tr '\n' ' '
+	)
 	;;
 	vect)
 	xmin_ymax_xmax_ymin=$(                                                                                                                      
@@ -46,15 +48,21 @@ case $type in
 		tr '\n' ' ' |\
 		awk '{print $1,$4,$3,$2}'
 	)
-	BBOX_WKT=$( echo "$xmin_ymax_xmax_ymin" |\
-	awk '{print $3,$4","$3,$2","$1,$2","$1,$4","$3,$4}'|\
-	sed 's:^:POLYGON ((:g;s:$:)):g'|\
-	sed "s:^:':g;s:$:':g"
-	)
 	;;
 esac
 }
 
+function get_bbox_asWKT {
+	BBOX_WKT=$( 
+		echo "$xmin_ymax_xmax_ymin" |\
+		awk '{print $3,$4","$3,$2","$1,$2","$1,$4","$3,$4}'|\
+		sed 's:^:POLYGON ((:g;s:$:)):g'|\
+		sed "s:^:':g;s:$:':g"
+	)
+}
+
+typetest
+get_ullr
 get_bbox_asWKT
 
 # get WKT of BBOX POLYGON transformed to new SRS
@@ -88,4 +96,5 @@ transformed_wkt=$(echo "$transformed_wkt" |\
 sed -n '3p'
 )
 
+# print both ullr and BBOX WKT
 echo -e "ulx,uly,lrx,lry:\n$transformed_ullr\n\n\nPOLYGON WKT:\n$transformed_wkt"
