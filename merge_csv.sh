@@ -7,12 +7,17 @@
 
 indir=$1
 out=$2
+# remove the output in case it exists - don't complain about err
 rm $out 2>/dev/null
 cd $indir
+# find a file to get the header from - all header better be identical
 header_origin=$( find $indir -type f -iregex ".*[.]csv$" | sed -n '1p')
+# get the header
 header=$( cat $header_origin | head -n 1 )
+# print the header to its own file
 echo "$header" > $out
-for csv in $( find $indir -type f -iregex ".*[.]csv$" | sed '1d' )
+# for every CSV that is not the output file, print the contents of the CSV without the header and append to the output
+for csv in $( find $indir -type f -iregex ".*[.]csv$" | grep -vE "^${out}$" )
 do 
 	cat $csv | sed '1d'
 done >> $out
