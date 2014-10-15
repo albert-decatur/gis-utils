@@ -68,5 +68,3 @@ do
         v.to.rast input=$GIS_OPT_MAP output=${GIS_OPT_OUTRASTPREFIX}_${i} type=area column=$i --overwrite
         r.out.gdal input=${GIS_OPT_OUTRASTPREFIX}_${i} output=${GIS_OPT_OUTRASTDIR}/${GIS_OPT_OUTRASTPREFIX}_${i}.tif
 done
-
-exit 0
