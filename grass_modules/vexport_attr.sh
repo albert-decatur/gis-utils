@@ -58,6 +58,8 @@ fi
 listcols=$(v.info -c map=$GIS_OPT_MAP | grep -E $GIS_OPT_COLUMN_REGEX | awk -F"|" '{print $2}')
 
 # calculate number of rows and columns for rasters
+# first set region based on default for mapset - would be nice to set on vector tho
+g.region -d
 extent=$(g.region -p | grep -E "north|south|west|east" | grep -oE "[0-9.]+")
 xpixels=$(echo $extent | awk "{ print (\$1-\$2)/$GIS_OPT_XRES}")
 ypixels=$(echo $extent | awk "{ print (\$4-\$3)/$GIS_OPT_YRES}")

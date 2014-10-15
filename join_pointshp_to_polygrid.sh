@@ -38,7 +38,7 @@ do
 	# join all point table fields except for gid,geom to only geom from poly table
 	echo "drop table if exists del; create table del as select $point_fields,ST_SetSRID(b.geom,$epsg) as geom from \"$point_table\" as a, \"$poly_table\" as b where st_within(a.geom,b.geom);" | psql $db
 	# remove point table
-	echo "DROP TABLE \"$point_table\" | psql $db;"
+	#echo "DROP TABLE \"$point_table\" | psql $db;"
 	cd $outdir
 	pgsql2shp $db del
 	rename "s:del:$point_table:g" del.*
