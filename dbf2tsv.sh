@@ -9,7 +9,8 @@ header=$(
 	dbfdump --info $indbf |\
 	sed '1,9d' |\
 	awk '{print $2}' |\
-	tr '\n' '\t'
+	tr '\n' '\t' |\
+	sed 's:\t$::g'
 )
 
 echo "$header"

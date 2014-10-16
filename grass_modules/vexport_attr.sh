@@ -29,19 +29,19 @@
 #% description: pattern for columns with attributes to match, in double quotes
 #% required : yes
 #%End
-#%Option
-#% key: xres
-#% type: string
-#% description: x resolution for raster export
-#% required : yes
-#%End
-#%Option
-#% required : yes
-#% key: yres
-#% type: string
-#% description: y resolution for raster export
-#% required : yes
-#%End
+##%Option
+##% key: xres
+##% type: string
+##% description: x resolution for raster export
+##% required : yes
+##%End
+##%Option
+##% required : yes
+##% key: yres
+##% type: string
+##% description: y resolution for raster export
+##% required : yes
+##%End
 
 if [ -z "$GISBASE" ] ; then
     echo "You must be in GRASS GIS to run this program." 1>&2
@@ -58,12 +58,13 @@ fi
 listcols=$(v.info -c map=$GIS_OPT_MAP | grep -E $GIS_OPT_COLUMN_REGEX | awk -F"|" '{print $2}')
 
 # calculate number of rows and columns for rasters
-# first set region based on default for mapset - would be nice to set on vector tho
-g.region -d
-extent=$(g.region -p | grep -E "north|south|west|east" | grep -oE "[0-9.]+")
-xpixels=$(echo $extent | awk "{ print (\$1-\$2)/$GIS_OPT_XRES}")
-ypixels=$(echo $extent | awk "{ print (\$4-\$3)/$GIS_OPT_YRES}")
-g.region vect=$GIS_OPT_MAP rows=$xpixels cols=$ypixels
+#extent=$(g.region -p | grep -E "north|south|west|east" | grep -oE "[-0-9.]+")
+#xpixels=$(echo $extent | awk "{ print (\$1-\$2)/$GIS_OPT_XRES}")
+#ypixels=$(echo $extent | awk "{ print (\$4-\$3)/$GIS_OPT_YRES}")
+#g.region vect=$GIS_OPT_MAP rows=$xpixels cols=$ypixels
+extent=$( g.region -p | grep -E "rows|cols" | awk '{print $2}' )
+xpixels=$( echo "$extent" | sed -n '2p')
+ypixels=$( echo "$extent" | sed -n '1p')
 
 for i in $listcols
 do
