@@ -58,13 +58,13 @@ fi
 listcols=$(v.info -c map=$GIS_OPT_MAP | grep -E $GIS_OPT_COLUMN_REGEX | awk -F"|" '{print $2}')
 
 # calculate number of rows and columns for rasters
-#extent=$(g.region -p | grep -E "north|south|west|east" | grep -oE "[-0-9.]+")
-#xpixels=$(echo $extent | awk "{ print (\$1-\$2)/$GIS_OPT_XRES}")
-#ypixels=$(echo $extent | awk "{ print (\$4-\$3)/$GIS_OPT_YRES}")
-#g.region vect=$GIS_OPT_MAP rows=$xpixels cols=$ypixels
-extent=$( g.region -p | grep -E "rows|cols" | awk '{print $2}' )
-xpixels=$( echo "$extent" | sed -n '2p')
-ypixels=$( echo "$extent" | sed -n '1p')
+extent=$(g.region -p | grep -E "north|south|west|east" | grep -oE "[-0-9.]+")
+xpixels=$(echo $extent | awk "{ print (\$1-\$2)/$GIS_OPT_XRES}")
+ypixels=$(echo $extent | awk "{ print (\$4-\$3)/$GIS_OPT_YRES}")
+g.region vect=$GIS_OPT_MAP rows=$xpixels cols=$ypixels
+#extent=$( g.region -p | grep -E "rows|cols" | awk '{print $2}' )
+#xpixels=$( echo "$extent" | sed -n '2p')
+#ypixels=$( echo "$extent" | sed -n '1p')
 
 for i in $listcols
 do
