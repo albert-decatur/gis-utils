@@ -1,6 +1,6 @@
 #!/bin/bash
 # r.sum
-# sum a directory of tifs
+# sum a directory of tifs in parallel
 
 # NB: 
 # for now, region rast must be tif
@@ -34,6 +34,12 @@
 #% required : yes
 #%End
 #%Option
+#% key: concurrentjobs
+#% type: string
+#% description: number of concurrent jobs to run.  can be higher than CPU count but please exercise caution. can be 1 to not run in parallel
+#% required : yes
+#%End
+#%Option
 #% key: output
 #% type: string
 #% description: path to output raster
@@ -52,6 +58,7 @@ fi
 absrast=$(readlink -f $GIS_OPT_INRASTDIR)
 regionrast=$(readlink -f $GIS_OPT_REGIONRAST)
 batchsize=$(readlink -f $GIS_OPT_BATCHSIZE)
+concurrent_job_count=$(readlink -f $GIS_OPT_CONCURRENTJOBS)
 output=$(readlink -f $GIS_OPT_OUTPUT)
 
 function importrast {
@@ -74,17 +81,24 @@ function rm_mask {
 	r.mask -r
 }
 
-function sum {
+# begin to write for gnu parallel
+# rely on job count from user
+# TODO - this is not nearly as important at making more prec2_nointersect-like single rasters - taking the largest sets of rasters that intersect with at least one other raster, but not any in their new set
+# write file and pass it to GRASS with gnu parallel
+# do **not** use previous raster made by map algebra w/ gnu parallel - always sum original rasters
+# **until* all original rasters have been involved in map algebra, then sum these in a next function
+function sum_parallel {
 	n=$( basename $batchsize )
 	# rm rasts produced by summing iterations
-	g.mremove -f rast=r[0-9]*
+##	g.mremove -f rast=r[0-9]*
+	# this should really be g.mlist
 	rasts=$( g.list type=rast | sed '1,2d;$d'|tr ' ' '\n'|grep -vE "^$" | grep -vE "^$( basename "$regionrast" .tif )$")
 	cols=$( seq 1 $n | sed 's:^:$:g'|tr '\n' ','| sed 's:,$::g' )
 	function nextn {  echo $rasts | awk "{OFS=\"\n\";print $cols}" ;}
 	function chop { echo "$rasts" | sed "1,${n}d";}
 	rastcount=$( echo "$rasts" | wc -l )
 	# if modulo ( raster count / batch size ) is > 0, then round up to next int
-	count_iterations=$( echo "if( $rastcount%$n > 0 ) { scale=0; $rastcount/$n + 1 } else { $rastcount/$n }" | bc )
+	count_iterations=$( echo "if( $rastcount%( $n * $concurrent_job_count ) > 0 ) { scale=0; $rastcount/i( $n * $concurrent_job_count ) + 1 } else { $rastcount/( $n * $concurrent_job_count ) }" | bc )
 	seq 1 $count_iterations |\
 	while read i
 	do 
@@ -99,11 +113,11 @@ function sum {
 			nextrasts=$( echo $nextrasts | tr '+' '\n' | while read rast; do echo $rast | sed "s:^:if(isnull(:g;s:$:),0,$rast):g"; done | tr '\n' '+' | sed 's:+$::g' )
 		fi
 		echo "r.mapcalc r${i}=$nextrasts"
-		r.mapcalc r${i}=$nextrasts
-		# rm intermediate rasts
-		if [[ $i != 1 ]]; then 
-			g.remove -f rast=r$( expr $i - 1 )
-		fi
+#		r.mapcalc r${i}=$nextrasts
+#		# rm intermediate rasts
+#		if [[ $i != 1 ]]; then 
+#			g.remove -f rast=r$( expr $i - 1 )
+#		fi
 		rasts=$(chop)
 	done
 }
@@ -113,10 +127,10 @@ function export_rast {
 	r.out.gdal input=$last_iteration output=$output nodata=0 format=GTiff createopt="COMPRESS=DEFLATE"
 }
 
-importrast
-setregion_global
-rm_mask
-sum
-export_rast
+#importrast
+#setregion_global
+#rm_mask
+sum_parallel
+#export_rast
 
 exit 0
