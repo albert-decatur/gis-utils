@@ -50,5 +50,7 @@ parallel -P 1 --gnu '
 	# get stats of raster map
 	r.univar map=$map -t fs=tab |\
 	# remove header
-	sed '1d'
+	sed "1d" |\
+	# add file basename
+	sed "s:^:${map}\t:g"
 '
