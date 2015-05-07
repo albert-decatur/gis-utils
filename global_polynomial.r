@@ -1,5 +1,7 @@
 # get *n* degree polynomial trend surface from point shapefile
 # originally made to produce maps of Saffir-Simpson index for all Atlantic hurricanes in HURDAT
+# TODO: add basemap to png
+# TODO: choose best polynomial based on data
 # args are: 1) input GIS vector points, 2) polynomial degree, 3) trmat grid dimensions (n X n)
 # example use: Rscript --vanilla $0 AL032009.shp 1 500
 
