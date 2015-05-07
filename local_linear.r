@@ -1,8 +1,8 @@
 # originally made to produce maps of Saffir-Simpson index for all Atlantic hurricanes in HURDAT
 # TODO: add basemap to png
 # TODO: export tif
-# args are: 1) input GIS vector points
-# example use: Rscript --vanilla $0 AL132003.shp
+# args are: 1) input GIS vector points, 2) map units per pixel side (spatial resolution)
+# example use: Rscript --vanilla $0 AL132003.shp 0.5
 
 # load prereqs
 library(methods) # this is only required when running with Rscript
@@ -22,8 +22,9 @@ d$lat <- as.numeric(as.character(d$lat))
 d$sshws <- as.numeric(as.character(d$sshws))
 # linear interpolation using akima package
 # note that map units are used as the spatial res, and that BBOX is used for grid
-# TODO: user arg for spatial res
-d.li <- interp(d$lon,d$lat,d$sshws, xo=seq(bbox(d)[1,1],bbox(d)[1,2], length=abs(bbox(d)[1,1] - bbox(d)[1,2])),yo=seq(bbox(d)[2,1],bbox(d)[2,2], length=abs(bbox(d)[2,1] - bbox(d)[2,2])))
+# user arg is for a multiple of the map units, eg 2 to coarse, 0.5 to make finer
+pixelDivisor <- as.numeric(args[2])
+d.li <- interp(d$lon,d$lat,d$sshws, xo=seq(bbox(d)[1,1],bbox(d)[1,2], length=abs(bbox(d)[1,1] - bbox(d)[1,2])/pixelDivisor),yo=seq(bbox(d)[2,1],bbox(d)[2,2], length=abs(bbox(d)[2,1] - bbox(d)[2,2]/pixelDivisor)))
 # enforce min (0) and max (particular to the HURDAT points)
 # first find the SSHWS max
 maxsshws <- max(d$sshws)
