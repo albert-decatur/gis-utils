@@ -1,4 +1,5 @@
-# get 2nd degree polynomial trend surface from point shapefile
+# get *n* degree polynomial trend surface from point shapefile
+# originally made to produce maps of Saffir-Simpson index for all Atlantic hurricanes in HURDAT
 # args are: 1) input GIS vector points, 2) polynomial degree, 3) trmat grid dimensions (n X n)
 # example use: Rscript --vanilla $0 AL032009.shp 1 500
 
@@ -22,10 +23,15 @@ d$sshws <- as.numeric(as.character(d$sshws))
 t <- surf.ls(as.numeric(args[2]),d$lon,d$lat,d$sshws)
 # make trend surface over grid
 g <- trmat(t,bbox(d)[1,1],bbox(d)[1,2],bbox(d)[2,1],bbox(d)[2,2],as.numeric(args[3]))
+# enforce min (0) and max (particular to the HURDAT points)
+# first find the SSHWS max
+maxsshws <- max(d$sshws)
+# now enforce 0 min and SSHWS max on trend grid
+g$z <- round(replace(replace(g$z,g$z>maxsshws,maxsshws),g$z<0,0))
 # visual
 png(paste("/tmp/",layerName,".png",sep=''))
 image(g)
 title(main=paste(layerName, ", ",args[2]," Degree Polynomial",sep=''))
+contour(g,labcex=1,add=T,nlevels=maxsshws)
 points(d$lon,d$lat)
-contour(g,labcex=1,add=T)
 dev.off()
